@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>기사 요약 불러오기</title>
     <script>
+        let currentIndex = 0; // 현재 기사 인덱스
+        const pageSize = 3; // 한 번에 보여줄 기사 수
+        let summaries = []; // 기사 요약 저장 배열
+
         function loadData() {
             const url = 'https://api-v2.deepsearch.com/v1/articles/economy,tech?keyword=title:(우크라이나 and 전쟁)&api_key=32b1e1335fcb41599f2a0df4c4170bea'; // 데이터를 가져올 URL
             fetch(url)
@@ -15,20 +19,44 @@
                     return response.json();
                 })
                 .then(data => {
-                    const summaries = data.data.slice(0, 3).map(article => article.summary); // 1, 2, 3번째 기사의 요약 추출
-                    console.log(summaries); // 요약 출력
-                    document.getElementById('output').innerText = summaries.join('\n\n'); // HTML에 표시
+                    summaries = data.data.map(article => article.summary); // 모든 기사의 요약 추출
+                    displaySummaries(); // 초기 요약 출력
+                    updateButtonState(); // 버튼 상태 업데이트
                 })
                 .catch(error => {
                     console.error('문제가 발생했습니다:', error);
                     document.getElementById('output').innerText = '데이터 로드 중 오류 발생';
                 });
         }
+
+        function displaySummaries() {
+            const output = document.getElementById('output');
+            output.innerText = ''; // 출력 초기화
+            const endIndex = Math.min(currentIndex + pageSize, summaries.length); // 다음 기사 인덱스 계산
+
+            for (let i = currentIndex; i < endIndex; i++) {
+                output.innerText += summaries[i] + '\n\n'; // 요약 출력
+            }
+
+            currentIndex += pageSize; // 인덱스 업데이트
+            updateButtonState(); // 버튼 상태 업데이트
+        }
+
+        function updateButtonState() {
+            const nextButton = document.getElementById('nextButton');
+            if (currentIndex >= summaries.length) {
+                nextButton.disabled = true; // 모든 기사를 다 본 경우 버튼 비활성화
+            } else {
+                nextButton.disabled = false; // 더 볼 기사가 있는 경우 버튼 활성화
+            }
+        }
+
+        window.onload = loadData; // 페이지 로드 시 데이터 불러오기
     </script>
 </head>
 <body>
     <h1>기사 요약 불러오기 예제</h1>
-    <button onclick="loadData()">기사 요약 불러오기</button>
+    <button id="nextButton" onclick="displaySummaries()">다음 기사 요약</button>
     <pre id="output"></pre>
 </body>
 </html>
