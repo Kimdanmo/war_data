@@ -1,16 +1,34 @@
 <!DOCTYPE html>
 <html lang="ko">
-    <head>
-        <title>SOP JavaScript : Map Simple</title>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <script type="text/javascript" src="https://sgisapi.kostat.go.kr/OpenAPI3/auth/javascriptAuth?consumer_key=089ebc9624aa49849e64"></script>
-    </head>
-    <body>
-        <div id="map" style="width:500px; height:500px;"></div>
-        <script type="text/javascript">
-            var map = sop.map('map');
-            map.setView(sop.utmk(953820, 1953437), 9);
-        </script>
-    </body>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>기사 요약 불러오기</title>
+    <script>
+        function loadData() {
+            const url = 'https://api-v2.deepsearch.com/v1/articles/economy,tech?keyword=title:(우크라이나 and 전쟁)&api_key=32b1e1335fcb41599f2a0df4c4170bea'; // 데이터를 가져올 URL
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('네트워크 응답이 좋지 않습니다.');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const summaries = data.data.slice(0, 3).map(article => article.summary); // 1, 2, 3번째 기사의 요약 추출
+                    console.log(summaries); // 요약 출력
+                    document.getElementById('output').innerText = summaries.join('\n\n'); // HTML에 표시
+                })
+                .catch(error => {
+                    console.error('문제가 발생했습니다:', error);
+                    document.getElementById('output').innerText = '데이터 로드 중 오류 발생';
+                });
+        }
+    </script>
+</head>
+<body>
+    <h1>기사 요약 불러오기 예제</h1>
+    <button onclick="loadData()">기사 요약 불러오기</button>
+    <pre id="output"></pre>
+</body>
 </html>
