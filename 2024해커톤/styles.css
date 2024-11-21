@@ -82,3 +82,18 @@ body, html {
     color: white;
     
 }
+
+input[type="text"] {
+    padding: 10px;
+    border: 2px solid #003160;
+    border-radius: 5px;
+    width: 300px;
+    font-size: 16px;
+    margin-bottom: 10px;
+    transition: border-color 0.3s;
+}
+
+input[type="text"]:focus {
+    border-color: #66bb6a;
+    outline: none;
+}
