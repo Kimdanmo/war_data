@@ -6,13 +6,13 @@
     <link rel="stylesheet" href="styles.css">
     <script type = "text/javascript" src = "https://sgisapi.kostat.go.kr/OpenAPI3/auth/javascriptAuth?consumer_key=5b44d920dbab4a6daaef"></script>
     <title>상 못 받으면 죽는 병 걸림</title>
-    <script>
-        function saveInput() {
-            // 입력 필드의 값을 가져와서 변수에 저장
-            var inputValue = document.getElementById("myInput").value;
-            console.log(inputValue); // 콘솔에 출력
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDAR7XCV3jEEfdVzi97kSHSb6wg10R--_w"></script>
+    <style>
+        #map {
+            height: 400px;
+            width: 100%;
         }
-    </script>
+    </style>
 </head>
 <body>
     <div class="container">
@@ -26,13 +26,53 @@
             <div class="bottom"></div>
         </div>
         <div class="right">
-            <input type="text" id="myInput" placeholder="전쟁 혹은 분쟁 지역을 입력하세요">
-            <button onclick="saveInput()">검색</button>
-            <div id="map" style="width:500px; height:500px;"></div>
-                <script type="text/javascript">
-                    var map = sop.map('map');
-                    map.setView(sop.utmk(953820, 1953437), 9);
-                </script>
+            <input id="location" type="text" placeholder="장소를 입력하세요">
+    <button onclick="geocodeLocation()">검색</button>
+    <div id="map"></div>
+    <script>
+        let map;
+        let marker; // 전역 변수로 마커 선언
+        let infoWindow; // 전역 변수로 InfoWindow 선언
+
+        function initMap() {
+            map = new google.maps.Map(document.getElementById("map"), {
+                center: { lat: -34.397, lng: 150.644 },
+                zoom: 8,
+            });
+            infoWindow = new google.maps.InfoWindow(); // InfoWindow 초기화
+        }
+
+        function geocodeLocation() {
+            const geocoder = new google.maps.Geocoder();
+            const address = document.getElementById("location").value;
+
+            geocoder.geocode({ address: address }, (results, status) => {
+                if (status === "OK") {
+                    map.setCenter(results[0].geometry.location);
+                    
+                    // 이전 마커가 존재하면 제거
+                    if (marker) {
+                        marker.setMap(null);
+                    }
+                    
+                    // 새로운 마커 생성
+                    marker = new google.maps.Marker({
+                        map: map,
+                        position: results[0].geometry.location,
+                    });
+
+                    // InfoWindow 내용 설정
+                    infoWindow.setContent("짜잔~!");
+                    infoWindow.open(map, marker); // 마커 위치에 InfoWindow 열기
+
+                } else {
+                    alert("장소를 찾을 수 없습니다: " + status);
+                }
+            });
+        }
+
+        window.onload = initMap;
+        </script>
         </div>
     </div>
 </body>
