@@ -9,32 +9,90 @@
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDAR7XCV3jEEfdVzi97kSHSb6wg10R--_w"></script>
     <style>
         #map {
-            height: 400px;
+            height: 90%;
             width: 100%;
         }
     </style>
 </head>
 <body>
     <div class="container">
+        <div class="arrow-button" id="prev-button"> &lt; </div>
         <div class="left">
             <div class="top">
-                <h1 id="time-message">전쟁 관련 이슈</h1>
+                <h1 id="time-message">전쟁·분쟁 지역</h1>
                 <div class="rounded-box"></div>
                 <div class="rounded-box"></div>
                 <div class="rounded-box"></div>
             </div>
-            <div class="bottom"></div>
+            <div class="bottom">
+                <div id="output"></div> <!-- 기사 요약을 표시할 요소 추가 -->
+                <button id="prevButton" disabled>이전</button>
+                <button id="nextButton" disabled>다음</button>
+            </div>
         </div>
+        <div class="arrow-button" id="next-button"> &gt; </div>
+
         <div class="right">
             <input id="location" type="text" placeholder="장소를 입력하세요">
             <button onclick="geocodeLocation()">검색</button>
             <div id="map"></div>
-            <div id="output"></div> <!-- 기사 요약을 표시할 요소 추가 -->
-
+            
         </div>
     </div>
 
-    <script>
+    <script> //박스
+        const boxes = [
+            ['우크라이나 · 러시아', '시리아 내전', '아프가니스탄'],
+            ['소말리아', '시리아·터키', '인도·파키스탄'],
+            ['이라크', '대한민국', '이란'],
+            ['이스라엘·팔레스타인', '미얀마', '필리핀']
+        ];
+
+        const list2 = [
+            ['우크라이나 and 러시아', '시리아 and 내전', '아프가니스탄'],  // 우크라이나
+            ['소말리아', '시리아 and 터키', '인도 and 파키스탄'],        // 시리아
+            ['이스라엘 and 팔레스타인', '미얀마', '필리핀'] // 아프가니스탄
+        ];
+
+        let currentIndex2 = 0;
+
+        function updateBoxes() {
+            const roundedBoxes = document.querySelectorAll('.rounded-box');
+            const newBoxes = boxes[currentIndex2];
+            roundedBoxes.forEach((box, index) => {
+                box.textContent = newBoxes[index];
+            });
+        }
+
+        document.getElementById('next-button').addEventListener('click', () => {
+            if (currentIndex2 < boxes.length - 1) {
+                currentIndex2++;
+                updateBoxes();
+            }
+        });
+
+        document.getElementById('prev-button').addEventListener('click', () => {
+            if (currentIndex2 > 0) {
+                currentIndex2--;
+                updateBoxes();
+            }
+        });
+
+        // 초기화
+        updateBoxes();
+
+        document.querySelectorAll('.rounded-box').forEach(box => {
+            box.addEventListener('click', function() {
+                const index = this.getAttribute('data-index');
+                const location = list2[currentIndex2][index]; // list2의 값 가져오기
+                loadData(location); // 지역 이름으로 데이터 로드
+            });
+        });
+
+        
+    </script>
+
+    <script> //지도
         let map;
         let marker; 
         let infoWindow; 
@@ -64,16 +122,6 @@
                         position: results[0].geometry.location,
                     });
 
-                    infoWindow.setContent(`
-                        <div>
-                            <h3>${address}</h3>
-                            <p id="summaryText"></p>
-                            <button id="prevButton" disabled>이전</button>
-                            <button id="nextButton" disabled>다음</button>
-                        </div>
-                    `);
-                    infoWindow.open(map, marker); 
-
                     loadData(address); // 장소 검색 후 자동으로 요약 로드
 
                 } else {
@@ -82,11 +130,11 @@
             });
         }
 
-        let currentIndex = 0; 
+        let currentIndex = 0; //뉴스 요약
         let summaries = []; 
 
         function loadData(location) {
-            const url = `https:/api-v2.deepsearch.com/v1/articles/politics,tech?keyword=title:(${location} and (전쟁 or 전투 or 위험))&api_key=32b1e1335fcb41599f2a0df4c4170bea`; 
+            const url = `https:/api-v2.deepsearch.com/v1/articles/politics,tech?keyword=title:(${location} and (군사 or 난민 or 전선 or 폭격 or 사상자))&date_from=2024-10-22-25&date_to=2024-11-22&api_key=32b1e1335fcb41599f2a0df4c4170bea`; 
             fetch(url)
                 .then(response => {
                     if (!response.ok) {
@@ -108,12 +156,11 @@
 
         function displaySummary() {
             const output = document.getElementById('output');
-            const summaryText = document.getElementById('summaryText');
 
-            // 요약을 출력 영역과 팝업에 표시
+            // 요약을 출력 영역에 표시
             if (currentIndex < summaries.length) {
                 const summary = summaries[currentIndex];
-                summaryText.innerText = summary; // 기사 요약을 팝업에 표시
+                output.innerText = summary; // 기사 요약을 출력 영역에 표시
             } else {
                 output.innerText = '더 이상 기사가 없습니다.'; 
             }
@@ -144,7 +191,6 @@
 
         window.onload = function() {
             initMap(); // 지도 초기화
-            loadData(); // 페이지 로드 시 데이터 자동 불러오기
             document.getElementById('prevButton').onclick = displayPreviousSummary; // 이전 버튼 클릭 시 요약 출력
             document.getElementById('nextButton').onclick = displayNextSummary; // 다음 버튼 클릭 시 요약 출력
         };
